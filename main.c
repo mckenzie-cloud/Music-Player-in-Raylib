@@ -14,8 +14,8 @@
 typedef struct
 {
     /* data */
-    int sec, min, hr;
     float music_time_length;
+    struct tm current_time;
     char time_buffer[10];
 }Timer;
 
@@ -24,9 +24,9 @@ Timer timer;
 
 void setTimer(int time_played)
 {
-    timer.sec = floorf(time_played % 60);
-    timer.min = floorf((time_played / 60) % 60);
-    timer.hr  = floorf(time_played / 3600);
+    timer.current_time.tm_sec = floorf(time_played % 60);
+    timer.current_time.tm_min = floorf((time_played / 60) % 60);
+    timer.current_time.tm_hour = floorf(time_played / 3600);
 }
 
 int main(void)
@@ -71,7 +71,7 @@ int main(void)
     int previous_track = -1;
 
     // Initialize timer value to zero.
-    timer.sec = 0; timer.min = 0, timer.hr = 0;
+    timer.current_time.tm_sec = 0; timer.current_time.tm_min = 0, timer.current_time.tm_hour = 0;
 
     //----------------------------------------------------------------------------------
     SetTargetFPS(60);               // Set to render at 60 frames-per-second
@@ -125,7 +125,7 @@ int main(void)
                 {
                     StopMusicStream(music_stream);
                     setTimer((int) timer.music_time_length);
-                    sprintf(timer.time_buffer, "%d:%d:%d", timer.hr, timer.min, timer.sec);
+                    strftime(timer.time_buffer, sizeof(timer.time_buffer), "%H:%M:%S", &timer.current_time);
                 }
                 else 
                 {
@@ -157,7 +157,7 @@ int main(void)
         {
             int time_played = (int) GetMusicTimePlayed(music_stream);
             setTimer(time_played);
-            sprintf(timer.time_buffer, "%d:%d:%d", timer.hr, timer.min, timer.sec);
+            strftime(timer.time_buffer, sizeof(timer.time_buffer), "%H:%M:%S", &timer.current_time);
         }
 
         //----------------------------------------------------------------------------------
