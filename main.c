@@ -61,6 +61,7 @@ int main(void)
     }
 
     int N_music_files = (int) dir_file_path.count;
+    int n_rows = 10, counter = 0, max = floorf((float) N_music_files / n_rows), min = 0;
 
     Music music_stream;
 
@@ -91,30 +92,45 @@ int main(void)
         if (IsMouseButtonPressed(0))
         {
             int Mposy = (int) GetMousePosition().y;
-            for (int i=0; i < N_music_files; i++)
+            for (int i=0; i < n_rows; i++)
             {
-                int filePosY1 = i*fontsize, filePosY2 = (i+1)*fontsize;
-                if (Mposy >= filePosY1 && Mposy < filePosY2)
+                int e = (counter * n_rows) + i;
+
+                if (e < N_music_files)
                 {
-                    if ((previous_track != current_track) || 
-                    ((current_track >= 0 && previous_track >=0) && (current_track == previous_track)))       // Unload previously loaded music stream.
+                    int filePosY1 = i*fontsize, filePosY2 = (i+1)*fontsize;
+                    if (Mposy >= filePosY1 && Mposy < filePosY2)
                     {
-                        UnloadMusicStream(music_stream);                           // Unload music stream
-                        previous_track = current_track;
-                    }
-                    music_stream = LoadMusicStream(dir_file_path.paths[i]);        // Load music stream
-                    music_stream.looping = false;                                  // Don't loop.
-                    current_track = i;
-                    if (IsMusicReady(music_stream))                                // Checks if a music stream is ready
-                    {
-                        PlayMusicStream(music_stream);
-                        timer.music_time_length = GetMusicTimeLength(music_stream);
+                        if ((previous_track != current_track) || 
+                        ((current_track >= 0 && previous_track >=0) && (current_track == previous_track)))       // Unload previously loaded music stream.
+                        {
+                            UnloadMusicStream(music_stream);                           // Unload music stream
+                            previous_track = current_track;
+                        }
+                        music_stream = LoadMusicStream(dir_file_path.paths[e]);        // Load music stream
+                        music_stream.looping = false;                                  // Don't loop.
+                        current_track = e;
+                        if (IsMusicReady(music_stream))                                // Checks if a music stream is ready
+                        {
+                            PlayMusicStream(music_stream);
+                            timer.music_time_length = GetMusicTimeLength(music_stream);
+                        }
                     }
                 }
             }
         }
         //----------------------------------------------------------------------------------
         // Handle Keyboard Input.
+        if (IsKeyPressed(KEY_DOWN))
+        {
+            if(counter < max) { counter++; }
+        }
+
+        if (IsKeyPressed(KEY_UP))
+        {
+            if (counter > min) { counter--; }
+        }
+        
         if (IsKeyPressed(KEY_RIGHT))
         {
             if (IsMusicStreamPlaying(music_stream))
@@ -165,24 +181,30 @@ int main(void)
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(RAYWHITE);
+            DrawText("Click 'LEFT' | 'RIGHT' to skip the music & 'UP' | 'DOWN' to scroll the files.", 20, 256, 10, RED);
 
             const char *filename;
             Vector2 textpos = {5.0, 0.0};
-            for (int i=0; i<N_music_files; i++)
+            for (int i=0; i<n_rows; i++)
             {
-                int Mposy = (int) GetMousePosition().y;
-                int filePosY1 = i*fontsize, filePosY2 = (i+1)*fontsize;
+                int e = (counter * n_rows) + i;
 
-                if (Mposy >= filePosY1 && Mposy < filePosY2)
+                if (e < N_music_files)
                 {
-                    color = &hover;
-                } else {
-                    color = &default_color;
-                }
+                    int Mposy = (int) GetMousePosition().y;
+                    int filePosY1 = i*fontsize, filePosY2 = (i+1)*fontsize;
 
-                textpos.y = i*font.baseSize;
-                filename = GetFileName(dir_file_path.paths[i]);
-                DrawTextEx(font, filename, textpos, font.baseSize, 1.0, *color);
+                    if (Mposy >= filePosY1 && Mposy < filePosY2)
+                    {
+                        color = &hover;
+                    } else {
+                        color = &default_color;
+                    }
+
+                    textpos.y = i*font.baseSize;
+                    filename = GetFileName(dir_file_path.paths[e]);
+                    DrawTextEx(font, filename, textpos, font.baseSize, 1.0, *color);
+                }
             }
 
             if (current_track >= 0)
