@@ -50,7 +50,7 @@ int main(void)
     int fontsize = 15;
 
     // Set Font
-    Font font = LoadFontEx("resources/Fonts/RobotoMono-Medium.ttf", fontsize, NULL, 0);
+    Font font = LoadFontEx("resources/Fonts/RobotoMono-SemiBold.ttf", fontsize, NULL, 0);
 
     // Load directory files
     const char *dir_path = "C:/Users/Anony/Music";                        // Set the directory where music files are stored.
