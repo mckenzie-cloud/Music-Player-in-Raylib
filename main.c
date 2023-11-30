@@ -11,6 +11,11 @@
 #define SCREEN_WIDTH 512
 #define SCREEN_HEIGHT 512
 
+#define BG_COLOR (Color) {246, 241, 238, 255}
+#define TEXT_COLOR (Color) {108, 95, 91, 255}
+#define TEXT_COLOR_HOVER (Color) {79, 74, 69, 255}
+#define TEXT_COLOR_ACTIVE (Color) {237, 125, 49, 255}
+
 typedef struct
 {
     /* data */
@@ -42,10 +47,10 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     // Font size
-    int fontsize = 12;
+    int fontsize = 15;
 
     // Set Font
-    Font font = LoadFontEx("resources/Fonts/CONSOLA.ttf", fontsize, NULL, 0);
+    Font font = LoadFontEx("resources/Fonts/RobotoMono-Medium.ttf", fontsize, NULL, 0);
 
     // Load directory files
     const char *dir_path = "C:/Users/Anony/Music";                        // Set the directory where music files are stored.
@@ -66,7 +71,7 @@ int main(void)
     Music music_stream;
 
     // Color state of the music track.
-    Color default_color = GRAY, hover = BLACK, *color;
+    Color *color;
 
     int current_track = -1;
     int previous_track = -1;
@@ -108,7 +113,6 @@ int main(void)
                             previous_track = current_track;
                         }
                         music_stream = LoadMusicStream(dir_file_path.paths[e]);        // Load music stream
-                        music_stream.looping = false;                                  // Don't loop.
                         current_track = e;
                         if (IsMusicReady(music_stream))                                // Checks if a music stream is ready
                         {
@@ -140,8 +144,7 @@ int main(void)
                 if (position > timer.music_time_length)
                 {
                     StopMusicStream(music_stream);
-                    setTimer((int) timer.music_time_length);
-                    strftime(timer.time_buffer, sizeof(timer.time_buffer), "%H:%M:%S", &timer.current_time);
+                    PlayMusicStream(music_stream);
                 }
                 else 
                 {
@@ -180,8 +183,8 @@ int main(void)
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
-            ClearBackground(RAYWHITE);
-            DrawText("Click 'LEFT' | 'RIGHT' to skip the music & 'UP' | 'DOWN' to scroll the files.", 20, 256, 10, RED);
+            ClearBackground(BG_COLOR);
+            DrawText("Press 'LEFT' | 'RIGHT' to skip the music & 'UP' | 'DOWN' to scroll the files.", 60, 256, 10, TEXT_COLOR_ACTIVE);
 
             const char *filename;
             Vector2 textpos = {5.0, 0.0};
@@ -196,25 +199,27 @@ int main(void)
 
                     if (Mposy >= filePosY1 && Mposy < filePosY2)
                     {
-                        color = &hover;
+                        color = &TEXT_COLOR_HOVER;
                     } else {
-                        color = &default_color;
+                        color = &TEXT_COLOR;
                     }
 
-                    textpos.y = i*font.baseSize;
+                    textpos.y = i*fontsize;
                     filename = GetFileName(dir_file_path.paths[e]);
-                    DrawTextEx(font, filename, textpos, font.baseSize, 1.0, *color);
+                    DrawTextEx(font, filename, textpos, fontsize, 0.0, *color);
                 }
             }
 
             if (current_track >= 0)
             {
                 filename = GetFileName(dir_file_path.paths[current_track]);
-                float current_track_text_posX = MeasureTextEx(font, filename, fontsize, 1.0).x;
-                DrawTextEx(font, filename, (Vector2) {(SCREEN_WIDTH - current_track_text_posX) / 2, SCREEN_HEIGHT-100}, font.baseSize, 1.0, MAROON);
+                Vector2 current_track_text_pos = MeasureTextEx(font, filename, fontsize, 0.0);
+                current_track_text_pos.x = (float) (SCREEN_WIDTH - current_track_text_pos.x) / 2.0;
+                current_track_text_pos.y = (float) SCREEN_HEIGHT - 100;
+                DrawTextEx(font, filename, current_track_text_pos, fontsize, 0.0, TEXT_COLOR_ACTIVE);
             }
 
-            DrawText(timer.time_buffer, 256, SCREEN_HEIGHT-50, fontsize, GRAY);
+            DrawText(timer.time_buffer, 256, SCREEN_HEIGHT-50, 12, TEXT_COLOR_ACTIVE);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
